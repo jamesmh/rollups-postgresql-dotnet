@@ -1,0 +1,19 @@
+version: "3.7"
+volumes:
+    postgres-data:
+networks:
+    backend:
+services:
+    postgres:
+        image: postgres:17.0
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_PASSWORD: 123456
+            POSTGRES_USER: postgres_user
+            POSTGRES_DB: postgres_db
+            PGDATA: /var/lib/postgresql/data
+        networks:
+            - backend
