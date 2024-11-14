@@ -13,13 +13,13 @@ namespace RollupsPostgresqlDotnet
             await GenerateUserEventsData(connection);
 
             await CreateRollupTable(connection);
-            await FillRollupTable(connection);
         }
 
         private static async Task DropEverything(DbConnection connection)
         {
             await connection.ExecuteAsync(@"
                 drop table if exists rollup_page_views_per_tenant_per_day;
+                drop table if exists rollup_metadata;
                 drop table if exists user_events;
                 drop table if exists tenants;
             ");
@@ -60,7 +60,7 @@ namespace RollupsPostgresqlDotnet
 
                 insert into user_events (event_type, tenant_id, created_at) 
                 select 
-                    -- Imagine there are 3 event_types available 
+                    -- Generate a random event type between 1 and 3
                     floor(random() * 3::integer + 1), 
 
                     -- Pick a tenant at random 
@@ -101,26 +101,16 @@ namespace RollupsPostgresqlDotnet
                 );
 
                 create unique index rollup_page_views_per_tenant_per_day_unique_index on rollup_page_views_per_tenant_per_day (tenant_id, at_day);
-            ");
-        }
 
-        private static async Task FillRollupTable(DbConnection connection)
-        {
-            // Rollup / couunt all the events per tenant and day.
-            await connection.ExecuteAsync(@"
-                insert into rollup_page_views_per_tenant_per_day (page_views, tenant_id, at_day)
-                select 
-                    count(*) as page_views,
-                    tenant_id,
-                    date_trunc('day', created_at) as at_day
-                from user_events
-                where event_type = 3
-                group by tenant_id, at_day
 
-                on conflict (tenant_id, at_day) 
-                    do update 
-                        set page_views = rollup_page_views_per_tenant_per_day.page_views + excluded.page_views
-                ;
+
+                create table rollup_metadata (
+                    id bigint primary key generated always as identity,
+                    table_name text not null,
+                    last_id bigint default(0)
+                );
+
+                insert into rollup_metadata (table_name, last_id) values ('rollup_page_views_per_tenant_per_day', 0);
             ");
         }
     }

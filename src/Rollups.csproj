@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="coravel" Version="6.0.0" />
     <PackageReference Include="dapper" Version="2.1.35" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
   </ItemGroup>

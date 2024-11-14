@@ -1,5 +1,7 @@
 # rollups-postgresql-dotnet
 
+Sample project to teach you how to build rollup tables using .NET, PostgreSQL and Coravel.
+
 Steps to run:
 
 1. Run `docker-compose up` to run postgres
