@@ -78,6 +78,40 @@ public class HomeController : Controller
         });
     }
 
+    public async Task<IActionResult> PageViewsFor2024RollupAdmin([FromServices] DbConnection connection)
+    {
+        var _2024 = new DateTime(2024, 1, 1);
+        var startTime = Stopwatch.GetTimestamp();
+
+        var viewModels = await connection.QueryAsync<PageViewsRollupAdminViewModel>(@"
+            select
+                sum(page_views) as views,
+                tenant_id as tenantId
+            from 
+                rollup_page_views_per_tenant_per_day
+            where at_day >= @start and at_day < @end
+            group by tenant_id
+            order by views desc;
+        ", new {
+            Start = _2024,
+            End = _2024.AddYears(1)
+        });
+
+       var elapsedTime = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
+
+        return Json(new {
+            Data = viewModels,
+            Elapsed = elapsedTime + " ms"
+        });
+    }
+
+    public class PageViewsRollupAdminViewModel
+    {
+        public long Views { get; set; }
+        public int TenantId { get; set; }
+        public PageViewsRollupAdminViewModel(){ }
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
